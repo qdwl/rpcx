@@ -420,23 +420,28 @@ func (c *xClient) generateClient(k, servicePath, serviceMethod string) (client R
 		return builder.GenerateClient(k, servicePath, serviceMethod)
 	}
 
-	client = &Client{
-		option:  c.option,
-		Plugins: c.Plugins,
-	}
-
-	var breaker interface{}
-	if c.option.GenBreaker != nil {
-		breaker, _ = c.breakers.LoadOrStore(k, c.option.GenBreaker())
-	}
-
-	err = client.Connect(network, addr)
-	if err != nil {
-		if breaker != nil {
-			breaker.(Breaker).Fail()
+	if network == "inprocess" {
+		client = InprocessClient
+	} else {
+		client = &Client{
+			option:  c.option,
+			Plugins: c.Plugins,
 		}
-		return nil, err
+
+		var breaker interface{}
+		if c.option.GenBreaker != nil {
+			breaker, _ = c.breakers.LoadOrStore(k, c.option.GenBreaker())
+		}
+
+		err = client.Connect(network, addr)
+		if err != nil {
+			if breaker != nil {
+				breaker.(Breaker).Fail()
+			}
+			return nil, err
+		}
 	}
+
 	return client, err
 }
 

@@ -11,8 +11,8 @@ func NewInprocessDiscovery() ServiceDiscovery {
 }
 
 // Clone clones this ServiceDiscovery with new servicePath.
-func (d InprocessDiscovery) Clone(servicePath string) ServiceDiscovery {
-	return &d
+func (d InprocessDiscovery) Clone(servicePath string) (ServiceDiscovery, error) {
+	return &d, nil
 }
 
 // GetServices returns the static server
@@ -26,6 +26,10 @@ func (d InprocessDiscovery) WatchService() chan []*KVPair {
 }
 
 func (d InprocessDiscovery) RemoveWatcher(ch chan []*KVPair) {
+}
+
+func (d *InprocessDiscovery) SetFilter(ServiceDiscoveryFilter) {
+
 }
 
 func (d *InprocessDiscovery) Close() {

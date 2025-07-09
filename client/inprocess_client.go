@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"reflect"
 	"sync"
 
@@ -69,7 +70,7 @@ func (client *inprocessClient) Go(ctx context.Context, servicePath, serviceMetho
 	call.Done = done
 	err := client.Call(ctx, servicePath, serviceMethod, args, reply)
 	if err != nil {
-		call.Error = ServiceError(err.Error())
+		call.Error = NewServiceError(err.Error())
 
 	}
 	call.done()
@@ -147,9 +148,24 @@ func (client *inprocessClient) IsShutdown() bool {
 	return false
 }
 
+func (client *inprocessClient) GetConn() net.Conn {
+	return nil
+}
+
+func (client *inprocessClient) RemoteAddr() string {
+	return "inprocess"
+}
+
 func (client *inprocessClient) Register(name string, rcvr interface{}, metadata string) (err error) {
 	client.Lock()
 	client.services[name] = rcvr
+	client.Unlock()
+	return
+}
+
+func (client *inprocessClient) Unregister(name string) (err error) {
+	client.Lock()
+	delete(client.services, name)
 	client.Unlock()
 	return
 }
